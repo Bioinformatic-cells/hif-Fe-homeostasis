@@ -14,6 +14,11 @@ Affiliation at the time of this work: **TIMC-IMAG, CNRS**, Grenoble, France.
 
 Code comments that start with `# IP <date>` mark Irina’s changes.
 
+## Funding
+
+This work was supported by the French Plan Cancer Biologie des Systèmes
+(no 18CB010-00).
+
 ## Citation
 
 DOI: *to be added*
