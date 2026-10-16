@@ -1,0 +1,79 @@
+\chapter{Installation and usage}
+
+\section{Environment setup}
+Create an isolated Python environment and install dependencies from the project
+root:
+
+\begin{lstlisting}
+python -m venv .venv
+# Linux/macOS:
+source .venv/bin/activate
+# Windows PowerShell:
+# .\.venv\Scripts\Activate.ps1
+
+python -m pip install --upgrade pip
+pip install -r requirements.txt
+python tests/run_all_tests.py
+\end{lstlisting}
+
+Required packages include NumPy, SciPy, pandas, matplotlib and recordclass
+(see \texttt{requirements.txt}).
+
+\section{Running a simulation}
+Basic command:
+
+\begin{lstlisting}
+python simulate.py b-vars-hif.txt b-par-hif.txt results.txt Box-Sampling 1000
+\end{lstlisting}
+
+Arguments:
+\begin{enumerate}
+  \item Variable bounds file (\texttt{name lower\_bounds upper\_bounds}).
+  \item Parameter bounds file, or a previous results / filter-solution file
+  depending on the mode.
+  \item Output results file name (written under the new \texttt{Run\_*} folder).
+  \item Mode (optional; default is box sampling when the CLI provides five
+  arguments as above).
+  \item Number of sampled points / iterations.
+\end{enumerate}
+
+Useful modes:
+\begin{description}
+  \item[\texttt{Box-Sampling}] Sample the parameter box with a Sobol sequence.
+  \item[\texttt{Re-Sampling}] Build local boxes around previously accepted
+  solutions and sample them.
+  \item[\texttt{Shell-Sampling}] Sample a shell of controlled width around a
+  previous solution set (\texttt{magnitude} in \texttt{config.py}).
+  \item[\texttt{PCA-guided-sampling}] Resample using a PCA reduction of the
+  accepted cloud.
+\end{description}
+
+Key settings live in \texttt{config.py}: solver tolerances
+(\texttt{SIMU\_RTOL}, \texttt{SIMU\_ATOL}), steady-state criteria, iron inputs
+(\texttt{MULTIPLE\_INPUTS}), biological bounds, and filter ratios.
+
+\section{Outputs}
+A typical run directory contains:
+\begin{itemize}
+  \item the results table (parameters, initial variables, ratios, total iron);
+  \item \texttt{Solutions\_y\_t/} and \texttt{Solutions\_filtered\_y\_t/}
+  trajectory dumps (a capped subset, to keep files manageable);
+  \item plot folders for raw and filtered solutions, and parameter correlations;
+  \item \texttt{Filter\_sol\_*.txt} / \texttt{Filter\_box\_*.txt} when filtering
+  succeeds;
+  \item \texttt{info.txt} with settings and copied input bound files.
+\end{itemize}
+
+\section{Regression tests}
+Contract and numerical fingerprint tests protect against unintentional changes:
+
+\begin{lstlisting}
+python tests/run_all_tests.py
+\end{lstlisting}
+
+Golden cases are stored under \texttt{tests/golden/}. Regenerate them only after
+a deliberate, reviewed numerical change:
+
+\begin{lstlisting}
+python tests/generate_golden.py
+\end{lstlisting}

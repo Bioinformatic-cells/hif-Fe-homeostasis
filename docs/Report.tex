@@ -1,0 +1,63 @@
+% !TEX program = pdflatex
+% !TEX encoding = UTF-8 Unicode
+\documentclass[11pt,a4paper,oneside]{report}
+
+\usepackage[english]{babel}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage{amsmath,amssymb,amsthm}
+\usepackage{geometry}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{longtable}
+\usepackage{siunitx}
+\usepackage{hyperref}
+\usepackage{listings}
+\usepackage{xcolor}
+\usepackage{fancyhdr}
+\usepackage{setspace}
+
+\geometry{margin=2.5cm}
+\graphicspath{{figures/}}
+
+\lstset{
+  language=Bash,
+  basicstyle=\ttfamily\small,
+  frame=single,
+  numbers=left,
+  numbersep=5pt,
+  backgroundcolor=\color{yellow!10},
+  breaklines=true,
+  columns=fullflexible,
+}
+
+\title{Documentation of the HIF--Iron Homeostasis Simulation Code}
+\author{Irina Piazza\\
+  with the original framework by Eric Fanchon and Alexandre Rocca\\[1em]
+  \normalsize TIMC-IMAG, CNRS, Grenoble, France}
+\date{}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+This report documents the Python simulation framework used to explore the
+parameter space of a cellular iron homeostasis model and its extension toward
+HIF--iron coupling. It describes the software architecture of the public
+release, how to install and run the code, the sampling and filtering workflow,
+and selected technical notes (including stiffness diagnostics). Historical
+laboratory protocols are retained in corrected English for reproducibility of
+earlier campaigns; command names are updated to the current public API
+(\texttt{simulate.py}, \texttt{config.py}, \texttt{filter.py}, \texttt{model.py}).
+\end{abstract}
+
+\tableofcontents
+\newpage
+
+\include{chapters/01_overview}
+\include{chapters/02_usage}
+\include{chapters/03_protocol}
+\include{chapters/04_stiffness}
+
+\end{document}

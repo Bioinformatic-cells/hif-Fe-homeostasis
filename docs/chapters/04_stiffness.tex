@@ -1,0 +1,45 @@
+\chapter{Stiffness investigation}
+\label{chap:stiffness}
+
+\section{Definition used in this work}
+A linear constant-coefficient system
+\[
+\mathbf{y}' = A\mathbf{y} + \mathbf{f}(x)
+\]
+is considered stiff when all eigenvalues of $A$ have negative real parts and the
+stiffness ratio
+\[
+\frac{|\mathrm{Re}(\overline{\lambda})|}{|\mathrm{Re}(\underline{\lambda})|}
+\]
+is large, where $\overline{\lambda}$ and $\underline{\lambda}$ are the
+eigenvalues with the largest and smallest $|\mathrm{Re}(\lambda)|$,
+respectively. Fast transients then coexist with slow ones, which is numerically
+demanding for explicit integrators.
+
+Although the iron-homeostasis ODEs are nonlinear, the Jacobian can be evaluated
+at a given time point. Locally, the system may then be treated as linear for the
+purpose of estimating a stiffness ratio.
+
+\section{Implementation in the code}
+In \texttt{model.py}, inside \texttt{diff\_eqs()}, the Jacobian is assembled in
+the time window corresponding to the iron perturbation
+(approximately $t\in[10000,30000]$\,s, i.e.\ about $2.7$--$8.3$\,h). Eigenvalues
+are computed with \texttt{scipy.linalg.eig}. When negative real parts are found
+and pairwise stiffness ratios exceed a threshold (e.g.\ $100$), a short report
+is written to a stiffness log file.
+
+This diagnostic is optional and intended for model analysis; it does not change
+the acceptance criteria of the sampling pipeline.
+
+\section{Practical remarks}
+\begin{itemize}
+  \item Stiffness, when present, motivates the use of implicit or
+  stiff-capable integrators (the default path uses SciPy's \texttt{odeint} /
+  LSODA-style switching).
+  \item The diagnostic depends on the current parameter set and on the state
+  trajectory; a system may look stiff for some accepted parameters and not for
+  others.
+  \item Extending the model with HIF-related reactions increases the state
+  dimension and can alter the eigenvalue spectrum; the same Jacobian-based check
+  remains applicable after updating the matrix assembly.
+\end{itemize}

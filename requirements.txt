@@ -1,0 +1,5 @@
+numpy>=1.18
+scipy>=1.4
+pandas>=1.0
+recordclass>=0.14
+matplotlib>=3.0

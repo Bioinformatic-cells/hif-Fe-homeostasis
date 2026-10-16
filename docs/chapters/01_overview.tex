@@ -1,0 +1,61 @@
+\chapter{Overview}
+
+\section{Scientific context}
+Iron homeostasis is tightly regulated at the cellular level. The models studied
+in this project describe key species (labile iron, ferritin and iron storage,
+IRP1, TfR1, ferroportin, and later HIF) and their kinetic interactions under
+different iron-replenishment conditions. The numerical goal is to sample a
+high-dimensional parameter space, retain only trajectories that satisfy
+biological constraints, and characterise the resulting admissible parameter
+regions.
+
+\section{Software lineage}
+The original simulation framework was developed by Eric Fanchon and Alexandre
+Rocca (TIMC-IMAG, CNRS). Irina Piazza later reorganised the code for clarity and
+maintainability: configuration was centralised, input/output was standardised
+with pandas DataFrames, filtering and logging were rewritten, plotting utilities
+were added, and the ODE right-hand side was unified. The public release
+distributed with this documentation is the HIF--iron oriented version of that
+work, modernised for Python~3.
+
+Changes introduced by Irina Piazza are marked in the source with comments of the
+form \texttt{\# IP <date>}.
+
+\section{Architecture of the public code}
+The main modules are:
+
+\begin{description}
+  \item[\texttt{simulate.py}] Entry point. Implements sampling modes
+  (\texttt{Box-Sampling}, \texttt{Re-Sampling}, \texttt{Shell-Sampling},
+  \texttt{PCA-guided-sampling}, \ldots), numerical integration, constraint
+  checks, optional filtering, dumping of trajectories, and plotting.
+  \item[\texttt{model.py}] Model-specific ODE system, algebraic steady-state
+  construction, absolute/relative constraints, and optional stiffness
+  diagnostics.
+  \item[\texttt{config.py}] Global constants: solver tolerances, sampling
+  settings, variable/parameter names, bounds and biological constraints.
+  \item[\texttt{filter.py}] Post-processing filter on ratios and concentration
+  bounds; writes filtered solution lists and enclosing boxes.
+  \item[\texttt{read\_file.py}] Reads bound files and results tables.
+  \item[\texttt{log.py}] Writes \texttt{info.txt} and copies input files into
+  each run directory.
+  \item[\texttt{sobol\_lib.py}, \texttt{pca.py}] Quasi-Monte Carlo sampling and
+  PCA-guided resampling helpers.
+  \item[\texttt{plot\_*.py}, \texttt{multiplot\_*.py}] Offline visualisation
+  utilities.
+\end{description}
+
+Each execution creates a timestamped folder \texttt{Run\_DD\_MM\_YYYY-HhMmSs/}
+containing results, plots, filtered outputs (when applicable), and run metadata.
+
+\section{Typical pipeline}
+\begin{enumerate}
+  \item Sample parameter vectors inside a box (Sobol sequence) or around
+  previous solutions (re-sampling / shell / PCA modes).
+  \item For each vector, compute algebraic initial conditions, improve the
+  steady state numerically if needed, then integrate the ODEs for each iron
+  input listed in \texttt{MULTIPLE\_INPUTS}.
+  \item Accept the set only if absolute and relative constraints are satisfied.
+  \item After the sampling loop, filter the accepted set with
+  \texttt{filter.py}, dump a subset of trajectories, and produce plots.
+\end{enumerate}

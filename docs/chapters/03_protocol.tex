@@ -1,0 +1,105 @@
+\chapter{Historical sampling protocol}
+\label{chap:protocol}
+
+This chapter summarises laboratory campaigns performed while refining the
+iron-homeostasis parameter region (late 2019 -- early 2020). The narrative is
+preserved for reproducibility of those results. In the present public code, the
+entry point is \texttt{simulate.py} (formerly \texttt{simulate\_test.py} /
+\texttt{simulate\_P.py}), configuration lives in \texttt{config.py}, and
+filtering is integrated after sampling (formerly a separate
+\texttt{filter\_test.py} call in early workflows).
+
+\section{Integrated simulate + filter workflow}
+In later versions of the code, filtering is invoked in the same run as sampling:
+once \texttt{apply\_method()} returns candidate solutions, \texttt{filter()}
+retains only those that satisfy the ratio and concentration constraints. The
+code also writes trajectory files and plots for each variable and each iron
+experiment. With seven variables and four iron inputs this yields up to
+28 trajectory files and 28 plots for both the unfiltered and filtered sets.
+
+Because the number of accepted solutions can be large, trajectory dumping and
+plotting are capped (on the order of 100 trajectories written and a smaller
+number plotted) so that output remains manageable. The main results table stores
+parameters, initial variables, ratios (Fe-sto, TfR1, Ft) and total iron for each
+experiment in a DataFrame-like columnar layout.
+
+\section{Outline of the refinement campaign}
+A representative sequence was:
+\begin{enumerate}
+  \item \textbf{Box sampling} of a large initial box (millions of Sobol points)
+  with relatively relaxed ferritin-ratio bounds at 250\,nM iron replenishment
+  (e.g.\ Ft ratio in $[4,12]$).
+  \item \textbf{Filtering}, which may initially retain very few or no points.
+  \item Repeated \textbf{re-sampling} around the surviving solutions, alternating
+  with filtering, to densify the admissible region.
+  \item Tightening of the ferritin ratio at 250\,nM to a validated interval
+  such as $[4, 6.5]$.
+  \item Optional \textbf{shell sampling} to explore the boundary of the current
+  box, followed again by re-sampling / box sampling to restore a more uniform
+  coverage.
+  \item Comparison of the enclosing box volume with the reference box obtained
+  by A.~Rocca, and occasional enlargement of weakly constrained directions
+  (e.g.\ $k_{\mathrm{IRP\_FPN1a}}$) when biological arguments suggested a wider
+  admissible range.
+\end{enumerate}
+
+Table~\ref{tab:protocol-summary} gives a compact schematic of one such campaign
+(counts are those recorded at the time; exact folder names varied between runs).
+
+\begin{table}[!ht]
+\centering
+\begin{tabular}{clccc}
+\toprule
+Step & Mode & Iterations & Ft ratio at 250\,nM & Filtered sols. \\
+\midrule
+1 & Box-Sampling & $4\times10^6$ & $[4.0,12.0]$ & 0 after filter \\
+2A & Re-Sampling ($0.2$) & $10^3$ & $[4.0,12.0]$ & 1 \\
+2B & Re-Sampling ($0.2$) & $10^5$ & $[4.0,12.0]$ & $12421$ \\
+2C & Re-Sampling & (dense) & $[4.0,6.5]$ & $\sim 922$ \\
+later & Shell / Box / Re-Sampling & up to $5\times10^6$ & $[4.0,6.5]$ & variable \\
+\bottomrule
+\end{tabular}
+\caption{Schematic of the historical refinement steps. Intermediate unfiltered
+counts were typically much larger than the filtered counts.}
+\label{tab:protocol-summary}
+\end{table}
+
+\section{Example commands (updated names)}
+Initial box sampling:
+
+\begin{lstlisting}
+python simulate.py b-vars-hif.txt b-par-hif.txt results.txt Box-Sampling 4000000
+\end{lstlisting}
+
+Re-sampling around previous solutions (use a results or filter-solution file as
+the second argument):
+
+\begin{lstlisting}
+python simulate.py b-vars-hif.txt previous_Filter_sol.txt results_rs.txt Re-Sampling 100000
+\end{lstlisting}
+
+Shell sampling:
+
+\begin{lstlisting}
+python simulate.py b-vars-hif.txt previous_Filter_sol.txt results_shell.txt Shell-Sampling 4000000
+\end{lstlisting}
+
+\section{Comparison with A.~Rocca's box}
+At intermediate stages the enclosing volume of the newly obtained box was
+compared with A.~Rocca's reference volume. When the new box became much smaller,
+shell sampling and controlled enlargement of selected parameter ranges were used
+to avoid an artificially contracted region. Merged boxes combining both analyses
+were also sampled in box-sampling mode to assess the joint admissible set.
+
+\section{Notes on interpretation}
+\begin{itemize}
+  \item Filtered counts depend strongly on the ratio bounds in
+  \texttt{config.py}; relaxing or tightening those bounds changes the accepted
+  set dramatically.
+  \item Re-sampling densifies local neighbourhoods but can bias coverage; a
+  subsequent box-sampling pass on the enclosing box restores a more uniform
+  distribution.
+  \item Parameter-correlation scatter plots (see
+  \texttt{plot\_params\_correlation.py} and the \texttt{multiplot\_*} scripts)
+  are useful to visualise possible dependencies in the accepted cloud.
+\end{itemize}
